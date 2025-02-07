@@ -36,8 +36,10 @@ with binary
 `unify.exe repo-path`
 
 for this repo
-`.\dist\unify\unify.exe .
+<pre>
+.\dist\unify\unify.exe .
 Total Files: 4
 Total Lines: 177
 Total Word Count: 485
-Repository packed into C:\Users\senthil\unify\unify-output.txt`
+Repository packed into C:\Users\senthil\unify\unify-output.txt
+</pre>
