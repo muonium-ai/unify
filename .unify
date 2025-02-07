@@ -1,0 +1,32 @@
+[add]
+# Specify file patterns to include in the output.
+# Use standard glob patterns. For example:
+# *.md
+# docs/*.txt
+# src/**/*.py
+# The following example includes all Markdown files and Python scripts in the 'scripts' directory:
+*.md
+*.py
+
+[ignore]
+# Specify file patterns to exclude from the output.
+# Use standard glob patterns. For example:
+# *.log
+# temp/*
+# build/**/*.o
+# The following example excludes all log files and temporary files:
+*.log
+temp/*
+LICENSE
+.gitignore
+.unify
+
+[versioncontrol]
+# Specify the version control system used.
+# Default is 'git'. Other examples include 'svn', 'mercurial', etc.
+system = git
+
+[outputfile]
+# Define the name of the output file to generate.
+# For example: consolidated_repo.txt
+name = unify-output.txt

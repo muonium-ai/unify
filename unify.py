@@ -1,60 +1,83 @@
 import os
 import argparse
+import configparser
 from pathlib import Path
+from fnmatch import fnmatch
 
-def load_gitignore(repo_path):
-    gitignore_path = repo_path / '.gitignore'
-    if gitignore_path.exists():
-        with open(gitignore_path, 'r') as f:
-            patterns = [line.strip() for line in f if line.strip() and not line.startswith('#')]
-        return patterns
-    return []
+def load_unify_config(repo_path):
+    unify_path = repo_path / '.unify'
+    config = {
+        "add": [],
+        "ignore": [],
+        "versioncontrol": "git",  # Default version control
+        "outputfile": "consolidated_repo.txt"
+    }
+    
+    if unify_path.exists():
+        parser = configparser.ConfigParser(allow_no_value=True)
+        parser.read(unify_path)
+        
+        if 'add' in parser:
+            config['add'] = [pattern.strip() for pattern in parser['add'] if pattern.strip()]
+        if 'ignore' in parser:
+            config['ignore'] = [pattern.strip() for pattern in parser['ignore'] if pattern.strip()]
+        if 'versioncontrol' in parser and 'system' in parser['versioncontrol']:
+            config['versioncontrol'] = parser['versioncontrol']['system'].strip()
+        if 'outputfile' in parser and 'name' in parser['outputfile']:
+            config['outputfile'] = parser['outputfile']['name'].strip()
+    
+    return config
 
 def is_ignored(file_path, ignore_patterns):
-    from fnmatch import fnmatch
-    for pattern in ignore_patterns:
-        if fnmatch(file_path, pattern):
-            return True
-    return False
+    return any(fnmatch(file_path, pattern) for pattern in ignore_patterns)
 
-def traverse_directory(repo_path, ignore_patterns):
+def is_added(file_path, add_patterns):
+    return any(fnmatch(file_path, pattern) for pattern in add_patterns)
+
+def traverse_directory(repo_path, add_patterns, ignore_patterns):
     files = []
     for root, _, filenames in os.walk(repo_path):
         for filename in filenames:
             file_path = os.path.relpath(os.path.join(root, filename), repo_path)
-            if not is_ignored(file_path, ignore_patterns):
-                files.append(file_path)
+            if is_ignored(file_path, ignore_patterns) and not is_added(file_path, add_patterns):
+                continue  # Skip ignored files unless explicitly added
+            files.append(file_path)
     return files
 
-def generate_output(repo_path, files, output_file, style):
-    with open(output_file, 'w') as f:
-        if style == 'markdown':
-            f.write("# Repository Files\n\n")
+def generate_output(repo_path, files, output_file):
+    total_word_count = 0
+    total_lines = 0
+    
+    with open(output_file, 'w', encoding='utf-8') as f:
         for file in files:
             file_path = repo_path / file
             with open(file_path, 'r', errors='ignore') as content_file:
                 content = content_file.read()
-            if style == 'markdown':
-                f.write(f"## {file}\n\n```\n{content}\n```\n\n")
-            else:
-                f.write(f"===============\nFile: {file}\n===============\n{content}\n\n")
+            
+            word_count = len(content.split())
+            total_word_count += word_count
+            file_lines = content.count('\n') + 1
+            total_lines += file_lines
+            
+            f.write(f"===============\nFile: {file}\nWord Count: {word_count}\n===============\n{content}\n\n")
+        
+        f.write(f"\n===============\nTotal Files: {len(files)}\nTotal Lines: {total_lines}\nTotal Word Count: {total_word_count}\n===============\n")
 
 def main():
-    parser = argparse.ArgumentParser(description="Pack repository into a single AI-friendly file.")
+    parser = argparse.ArgumentParser(description="Pack repository into a single AI-friendly file based on .unify config.")
     parser.add_argument('repo_path', type=Path, help="Path to the local repository.")
-    parser.add_argument('-o', '--output', type=Path, default='repomix-output.txt', help="Output file name.")
-    parser.add_argument('--style', choices=['plain', 'markdown'], default='plain', help="Output format style.")
     args = parser.parse_args()
-
+    
     repo_path = args.repo_path.resolve()
     if not repo_path.is_dir():
         print(f"Error: {repo_path} is not a valid directory.")
         return
-
-    ignore_patterns = load_gitignore(repo_path)
-    files = traverse_directory(repo_path, ignore_patterns)
-    generate_output(repo_path, files, args.output, args.style)
-    print(f"Repository packed into {args.output}")
+    
+    config = load_unify_config(repo_path)
+    files = traverse_directory(repo_path, config['add'], config['ignore'])
+    output_file = repo_path / config['outputfile']
+    generate_output(repo_path, files, output_file)
+    print(f"Repository packed into {output_file}")
 
 if __name__ == "__main__":
     main()
