@@ -17,6 +17,8 @@
 # The following example excludes all log files and temporary files:
 *.log
 temp/*
+dist/*
+build/*
 LICENSE
 .gitignore
 .unify
