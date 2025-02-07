@@ -1,5 +1,3 @@
-![Unify Logo](https://github.com/muonium-ai/unify/blob/main/images/logo.png)
-
 
 <img src="https://github.com/muonium-ai/unify/blob/main/images/logo.png" alt="Unify Logo" width="200"/>
 
