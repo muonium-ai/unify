@@ -25,6 +25,8 @@ LICENSE
 *.db
 *.png
 *.jpg
+*.webp
+*.ico
 
 
 [versioncontrol]
