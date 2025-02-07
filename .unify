@@ -21,6 +21,11 @@ LICENSE
 .gitignore
 .unify
 .git/*
+*.zip
+*.db
+*.png
+*.jpg
+
 
 [versioncontrol]
 # Specify the version control system used.
